@@ -1,18 +1,46 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
-
-import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
+import { DbService } from './api/db.service';
+import { HttpClientModule } from '@angular/common/http';
+import { HttpClientInMemoryWebApiModule } from 'angular-in-memory-web-api';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { AppRoutingModule } from './app-routing.module';
+import { TodosModule } from './modules/todos/todos.module';
+import { CounterModule } from './modules/counter/counter.module';
+import { StoreDevtoolsModule, StoreModule } from 'mini-rx-store-ng';
+import { ImmutableStateExtension, LoggerExtension, UndoExtension } from 'mini-rx-store';
+import { ProductsStateModule } from './modules/products/state/products-state.module';
+import { UserModule } from './modules/user/user.module';
+import { HashLocationStrategy, LocationStrategy } from '@angular/common';
+import { ToastrModule } from 'ngx-toastr';
 
 @NgModule({
-  declarations: [
-    AppComponent
-  ],
-  imports: [
-    BrowserModule,
-    AppRoutingModule
-  ],
-  providers: [],
-  bootstrap: [AppComponent]
+    imports: [
+        BrowserModule,
+        BrowserAnimationsModule,
+        HttpClientModule,
+        HttpClientInMemoryWebApiModule.forRoot(DbService, { delay: 500, put204: false }),
+        AppRoutingModule,
+        ToastrModule.forRoot(),
+        TodosModule,
+        CounterModule,
+        UserModule,
+        StoreModule.forRoot({
+            extensions: [new ImmutableStateExtension(), new UndoExtension(), new LoggerExtension()],
+        }),
+        // TODO exclude from production: https://ngrx.io/guide/store-devtools/recipes/exclude
+        StoreDevtoolsModule.instrument({
+            name: 'MiniRx Angular Demo',
+            maxAge: 25,
+            latency: 250,
+            trace: true,
+            traceLimit: 25,
+        }),
+        ProductsStateModule,
+    ],
+    declarations: [AppComponent],
+    bootstrap: [AppComponent],
+    providers: [{ provide: LocationStrategy, useClass: HashLocationStrategy }],
 })
-export class AppModule { }
+export class AppModule {}
